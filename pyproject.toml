@@ -1,0 +1,23 @@
+[project]
+name = "chinese-train-delays"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "adjusttext>=1.4.0",
+    "cartopy>=0.25.0",
+    "copernicus-helper",
+    "geopandas>=1.1.4",
+    "h3pandas>=0.3.0",
+    "matplotlib>=3.11.1",
+    "networkx>=3.6.1",
+    "numpy>=2.5.1",
+    "scikit-learn>=1.9.0",
+    "scipy>=1.18.0",
+    "spyder-kernels>=3.1.5",
+    "xarray>=2026.7.0",
+]
+
+[tool.uv.sources]
+copernicus-helper = { git = "https://github.com/CoMuNeLab/copernicus_helper" }
