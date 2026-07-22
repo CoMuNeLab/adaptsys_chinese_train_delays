@@ -12,7 +12,7 @@ import diffsys
 import numpy as np
 import pandas as pd
 import xarray as xr
-from base import CACHE
+from base import TCACHE
 from diffsys.models import Diffusion
 from scipy import optimize
 from tqdm.contrib.concurrent import process_map
@@ -139,7 +139,7 @@ def simulate(pars: tuple):
         data["alpha"] = 1.0
     data["value"] = delta
 
-    folder = CACHE / "optimize_pars"
+    folder = TCACHE / "optimize_pars"
     folder.mkdir(parents=True, exist_ok=True)
     with (folder / f"kfold-{KFOLD}.jsonl").open("a") as fout:
         json.dump(data, fout, separators=(",", ":"))

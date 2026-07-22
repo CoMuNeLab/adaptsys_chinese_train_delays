@@ -15,7 +15,8 @@ from diffsys.models import Diffusion
 from sklearn import model_selection
 
 COPERNICUS = Path("../copernicus/")
-TCACHE = Path("../data/")
+TCACHE = Path("./stats/")
+TCACHE.mkdir(parents=True, exist_ok=True)
 CACHE = Path("../data/")
 CACHE.mkdir(parents=True, exist_ok=True)
 PLOTS = Path("./plots")
@@ -53,7 +54,7 @@ def load_extfield() -> diffsys.ExternalField:
 
 
 def load_nodes() -> gpd.GeoDataFrame:
-    return gpd.read_file(TCACHE / "graph_nodes_metadata.geojson").set_index(
+    return gpd.read_file(CACHE / "graph_nodes_metadata.geojson").set_index(
         "station_name_original", drop=True
     )
 
@@ -75,7 +76,7 @@ def load_graph(full: bool = True, days: pd.DatetimeIndex | None = None) -> diffs
     ).drop_duplicates(subset=["source", "target"])
     edges = edges.set_index(["source", "target"], drop=True)
 
-    transitions = pd.read_csv(TCACHE / "aggregate_transitions.csv.gz", parse_dates=["date"])
+    transitions = pd.read_csv(CACHE / "aggregate_transitions.csv.gz", parse_dates=["date"])
     if days is not None:
         transitions = transitions[transitions["date"].isin(days)]
 
@@ -142,7 +143,7 @@ def params(
 ) -> dict[str, float] | pd.DataFrame:
     """Load the fitted parameters from cache."""
     if path is None:
-        path = sorted(Path("stats/optimize_pars").glob("*kfold-[0-9].jsonl*"))
+        path = sorted((TCACHE / "optimize_pars").glob("*kfold-[0-9].jsonl*"))
 
     if isinstance(path, Path) and path.is_file():
         log(f"Loading {path}")
@@ -174,15 +175,15 @@ def log(*args, **kwargs) -> None:
 
 def load_rain(local: bool | None = None, col: str = "tp"):
     if local:
-        return pd.read_csv(TCACHE / "rain_peaks_stations.csv.gz", parse_dates=["time"]).set_index(
+        return pd.read_csv(CACHE / "rain_peaks_stations.csv.gz", parse_dates=["time"]).set_index(
             "time"
         )
-    return pd.read_csv(TCACHE / "rain_peaks.csv.gz", parse_dates=["time"]).set_index("time")[[col]]
+    return pd.read_csv(CACHE / "rain_peaks.csv.gz", parse_dates=["time"]).set_index("time")[[col]]
 
 
 def load_peaks(year: int | list[int] | None = None, kind: str = "both") -> pd.DataFrame:
     """Load the peaks."""
-    data: pd.DataFrame = pd.read_csv(TCACHE / "rain_peaks.csv.gz", index_col=0, parse_dates=True)
+    data: pd.DataFrame = pd.read_csv(CACHE / "rain_peaks.csv.gz", index_col=0, parse_dates=True)
     if kind == "both":
         data = data.loc[data["peak"].isin(["high", "low"])]
     elif kind in {"high", "low"}:
@@ -267,9 +268,7 @@ def generated_delay(
 
 
 def load_real_delay() -> pd.DataFrame:
-    return pd.read_csv(
-        TCACHE / "delays_per_stations.csv.gz", parse_dates=["time"], index_col="time"
-    )
+    return pd.read_csv(CACHE / "delays_per_stations.csv.gz", parse_dates=["time"], index_col="time")
 
 
 def add_axis_label(ax, text: str):
