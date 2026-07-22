@@ -1,3 +1,10 @@
+"""Compute and plot the correlation between delay and rain per station.
+
+This script loads delay and rain data, computes Spearman correlation
+coefficients for each station, and visualizes the results on a map.
+The output is a PDF plot saved in the plots directory.
+"""
+
 import base
 import numpy as np
 import pandas as pd

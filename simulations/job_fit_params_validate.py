@@ -1,4 +1,11 @@
-"""Test the fitted parameters on the last year: 2024"""
+"""Validate fitted parameters on the test dataset (2024).
+
+This script tests the fitted parameters (alpha, beta, gamma) by simulating
+delay cascades and comparing predicted delays with real reported delays.
+It computes correlation metrics and generates validation plots showing
+predicted vs. reported delays. Output files include PDF and PNG plots
+saved in the plots directory.
+"""
 
 from functools import partial
 from pathlib import Path

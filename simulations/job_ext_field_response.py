@@ -1,10 +1,9 @@
-"""Study of the mutual influence of the nodes.
+"""Study the system response to varying external field levels.
 
-How much an external perturbation on one node influence other nodes.
-
-1. The perturbation is on the state -> the evolution of the perturbation on other nodes depends on the transition matrix and the removal process
-2. The perturbation is on the external stressor.
-3. Compute also the steady state
+This script simulates the response of the train network to different
+levels of external field stress. It computes cumulative delays for each
+node at multiple stressor levels using a diffusion model.
+Output is a CSV file with response data saved in the cache directory.
 """
 
 import base

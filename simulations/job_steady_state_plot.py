@@ -1,4 +1,10 @@
-"""Plot the distribution of the steady state."""
+"""Plot the distribution of the steady state.
+
+This script visualizes the steady state distribution of delays in the train network.
+It computes and plots the steady state values, their critical points, and their
+relationship with node degree and betweenness centrality. Output files include
+PDF and PNG plots saved in the plots directory.
+"""
 
 import json
 from decimal import Decimal

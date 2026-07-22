@@ -1,3 +1,11 @@
+"""Fit a regression model to predict delays from rainfall data.
+
+This script performs Ridge regression to predict train delays based on
+rainfall measurements. It computes correlation metrics between predicted
+and actual delays and generates validation plots.
+Output files include PDF and PNG plots saved in the plots directory.
+"""
+
 from pathlib import Path
 
 import base

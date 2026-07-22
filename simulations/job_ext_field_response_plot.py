@@ -1,4 +1,10 @@
-"""Plot the response to constant external field."""
+"""Plot the response to constant external field.
+
+This script visualizes the system's response to different levels of
+constant external field stress. It fits a logarithmic model to the
+response data and plots both the raw data and the fitted curve.
+Output files include PDF and PNG plots saved in the plots directory.
+"""
 
 import base
 import numpy as np

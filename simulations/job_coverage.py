@@ -1,10 +1,19 @@
-"""Study of the mutual influence of the nodes.
+"""Study the mutual influence of nodes under external perturbations.
 
-How much an external perturbation on one node influence other nodes.
+This script simulates how external perturbations on one node influence
+other nodes in the network. It computes coverage metrics for stressor
+perturbations, including cumulative delay, count, and risk (delay * population).
+The simulation uses a diffusion model with specified parameters.
+Output is a CSV file saved in the cache directory.
 
-1. The perturbation is on the state -> the evolution of the perturbation on other nodes depends on the transition matrix and the removal process
-2. The perturbation is on the external stressor.
-3. Compute also the steady state
+Parameters
+----------
+PERTURBATION_STATE : int
+    Initial state perturbation in minutes.
+PERTURBATION_STRESSOR : float
+    External stressor perturbation in mm/h.
+PERTURBATION_RADIUS : int
+    Radius of perturbation influence in km.
 """
 
 import base
@@ -125,18 +134,7 @@ def sim_all(data):
     )
     sim_stressor = sim_station(mod, station, "stressor")
 
-    # # Perturbation on the state
-    # mod = Diffusion(graph_adj, stressor, **params)
-    # prepare_initial_state("state", mod, station)
-    # sim_state = sim_station(mod, station, "state")
-    #
-    # # Perturbation on the state
-    # mod = Diffusion(graph_adj, stressor, **params)
-    # prepare_initial_state("degree", mod, station)
-    # sim_degree = sim_station(mod, station, "degree")
     return sim_stressor
-
-    return pd.concat([sim_stressor, sim_state, sim_degree], axis=1)
 
 
 def main() -> None:

@@ -1,6 +1,11 @@
-"""Fit the parameter alpha, beta and gamma to the learning dataset.
+"""Fit the parameters alpha, beta, and gamma to the training dataset.
 
-This script needs to be run multiple times changing the value of KFOLD from 0 to 3 manually.
+This script performs parameter optimization for the diffusion model using
+Nelder-Mead minimization. It fits alpha (diffusion rate), beta (stressor
+sensitivity), and gamma (removal rate) to minimize the difference between
+predicted and actual delays. The script should be run multiple times with
+KFOLD values from 0 to 3 for cross-validation.
+Output files include JSONL files with optimization results saved in the cache directory.
 """
 
 import json

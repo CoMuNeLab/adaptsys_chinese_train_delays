@@ -1,4 +1,10 @@
-"""Create the geofile with data of coverage."""
+"""Create and plot coverage data for perturbation analysis.
+
+This script loads coverage data, computes node-level metrics (degree,
+betweenness, capacity), and generates geospatial visualizations showing
+perturbability and social risk across the network. Output files include
+GeoJSON data files and PDF/PNG plots saved in the cache and plots directories.
+"""
 
 import base
 import geopandas as geopd

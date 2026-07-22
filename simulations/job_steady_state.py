@@ -1,10 +1,10 @@
-"""Study of the mutual influence of the nodes.
+"""Compute the steady state of the system under external stress.
 
-How much an external perturbation on one node influence other nodes.
-
-1. The perturbation is on the state -> the evolution of the perturbation on other nodes depends on the transition matrix and the removal process
-2. The perturbation is on the external stressor.
-3. Compute also the steady state
+This script simulates the train network under constant external stress to
+find steady state conditions. It computes the steady state delay distribution
+for different stressor levels and identifies critical thresholds where the
+system behavior changes. Output files include GeoJSON and CSV files with
+steady state data and bounds saved in the cache and stats directories.
 """
 
 import json
