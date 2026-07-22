@@ -28,10 +28,16 @@ LOC_CACHE = {}
 pd.set_option("future.no_silent_downcasting", True)
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-ALL_YEARS = list(range(2020, 2025))
 
 
 def load_extfield() -> diffsys.ExternalField:
+    """Load external field data from cache or Copernicus files.
+
+    Returns
+    -------
+    diffsys.ExternalField
+        The loaded external field data.
+    """
     cachefile = Path("../data/extf.nc")
     if cachefile.is_file():
         return diffsys.ExternalField(xr.load_dataarray(cachefile, decode_coords="all"))
@@ -54,18 +60,37 @@ def load_extfield() -> diffsys.ExternalField:
 
 
 def load_nodes() -> gpd.GeoDataFrame:
+    """Load graph nodes from cache.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        GeoDataFrame containing graph nodes with station names as index.
+    """
     return gpd.read_file(CACHE / "graph_nodes_metadata.geojson").set_index(
         "station_name_original", drop=True
     )
 
 
 def load_graph(full: bool = True, days: pd.DatetimeIndex | None = None) -> diffsys.Graph:
-    """Load the graph.
+    """Load the graph from cache.
 
-    This may contain duplicated links.
+    Parameters
+    ----------
+    full : bool, optional
+        If True, all links are kept separated by month, weekday, hour.
+        Otherwise, a global average is returned. Default is True.
+    days : pd.DatetimeIndex or None, optional
+        Specific days to filter transitions. Default is None.
 
-    If `full == True` all links are kept separated by month, weekday, hour,
-    otherwise a global average is returned.
+    Returns
+    -------
+    diffsys.Graph
+        The loaded graph with nodes and transitions.
+
+    Notes
+    -----
+    The graph may contain duplicated links.
     """
     nodes = load_nodes()
 
@@ -141,7 +166,27 @@ def load_graph(full: bool = True, days: pd.DatetimeIndex | None = None) -> diffs
 def params(
     path: list[Path] | Path | None = None, aggr=np.median, df: Literal["ci", "kfold"] | None = None
 ) -> dict[str, float] | pd.DataFrame:
-    """Load the fitted parameters from cache."""
+    """Load the fitted parameters from cache.
+
+    Parameters
+    ----------
+    path : list[Path] or Path or None, optional
+        Path to parameter files. Default is None.
+    aggr : callable, optional
+        Aggregation function. Default is np.median.
+    df : {"ci", "kfold"} or None, optional
+        DataFrame type to return. Default is None.
+
+    Returns
+    -------
+    dict[str, float] or pd.DataFrame
+        Dictionary of parameters or DataFrame with confidence intervals/kfold results.
+
+    Raises
+    ------
+    ValueError
+        If the specified path does not exist.
+    """
     if path is None:
         path = sorted((TCACHE / "optimize_pars").glob("*kfold-[0-9].jsonl*"))
 
@@ -169,11 +214,33 @@ def params(
 
 
 def log(*args, **kwargs) -> None:
-    """Log fancy."""
+    """Log a message with fancy formatting.
+
+    Parameters
+    ----------
+    *args : tuple
+        Positional arguments to log.
+    **kwargs : dict
+        Keyword arguments to log.
+    """
     logger.info(*args, **kwargs)
 
 
 def load_rain(local: bool | None = None, col: str = "tp"):
+    """Load rain data from cache.
+
+    Parameters
+    ----------
+    local : bool or None, optional
+        If True, load station-specific rain data. Default is None.
+    col : str, optional
+        Column name to select. Default is "tp".
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with rain data indexed by time.
+    """
     if local:
         return pd.read_csv(CACHE / "rain_peaks_stations.csv.gz", parse_dates=["time"]).set_index(
             "time"
@@ -182,7 +249,25 @@ def load_rain(local: bool | None = None, col: str = "tp"):
 
 
 def load_peaks(year: int | list[int] | None = None, kind: str = "both") -> pd.DataFrame:
-    """Load the peaks."""
+    """Load rain peaks data from cache.
+
+    Parameters
+    ----------
+    year : int or list[int] or None, optional
+        Year or list of years to filter. Default is None.
+    kind : str, optional
+        Type of peaks to load ("both", "high", "low", "full"). Default is "both".
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with rain peaks data.
+
+    Raises
+    ------
+    NotImplementedError
+        If an unsupported kind is specified.
+    """
     data: pd.DataFrame = pd.read_csv(CACHE / "rain_peaks.csv.gz", index_col=0, parse_dates=True)
     if kind == "both":
         data = data.loc[data["peak"].isin(["high", "low"])]
@@ -203,10 +288,26 @@ def load_peaks(year: int | list[int] | None = None, kind: str = "both") -> pd.Da
 
 
 def sim(model: Diffusion, full_graph: diffsys.Graph, usecache: bool = True) -> pd.DataFrame:
-    """Simulate a day.
+    """Simulate a day using the provided model.
 
-    Pick the model and simulate **one°° cascade.
-    `full_graph` should contain all multiple links for each hour, month, day
+    Parameters
+    ----------
+    model : Diffusion
+        The diffusion model to use for simulation.
+    full_graph : diffsys.Graph
+        The graph containing all multiple links for each hour, month, day.
+    usecache : bool, optional
+        Whether to use cached rain data. Default is True.
+
+    Returns
+    -------
+    pd.DataFrame
+        The first and only cascade as a DataFrame.
+
+    Notes
+    -----
+    Simulates one cascade. The model evolves through extreme events,
+    generating delays and concluding the cascade.
     """
     global LOC_CACHE
 
@@ -255,7 +356,28 @@ def generated_delay(
     integral: pd.Series | None = None,
     **kwargs: float,
 ) -> np.ndarray:
-    """Compute the generated delay (before multipling by the parameter)."""
+    """Compute the generated delay before multiplying by the parameter.
+
+    Parameters
+    ----------
+    graph : diffsys.Graph
+        The graph to compute delays on.
+    external_field : diffsys.ExternalField
+        The external field affecting the graph.
+    trange : pd.Timestamp or tuple[pd.Timestamp, pd.Timestamp] or None, optional
+        Time range for the external field. Default is None.
+    weight : str or float, optional
+        Weight column name or value. Default is "weight".
+    integral : pd.Series or None, optional
+        Precomputed integral values. Default is None.
+    **kwargs : float
+        Additional keyword arguments for graph integration.
+
+    Returns
+    -------
+    np.ndarray
+        Array of generated delays.
+    """
     if integral is None:
         if trange is None:
             trange = external_field.trange()
@@ -268,14 +390,42 @@ def generated_delay(
 
 
 def load_real_delay() -> pd.DataFrame:
+    """Load real delay data from cache.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with real delay data indexed by time.
+    """
     return pd.read_csv(CACHE / "delays_per_stations.csv.gz", parse_dates=["time"], index_col="time")
 
 
 def add_axis_label(ax, text: str):
+    """Add a title to the axis.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axis to add the title to.
+    text : str
+        The title text.
+    """
     ax.set_title(text, loc="left", fontsize="xx-large", fontweight="bold", ha="right")
 
 
 def shorten_name(text: str) -> str:
+    """Shorten a station name to a more compact format.
+
+    Parameters
+    ----------
+    text : str
+        The station name to shorten.
+
+    Returns
+    -------
+    str
+        The shortened station name.
+    """
     parts = text.split()
     if parts[0] in {"san"}:
         return " ".join(parts[:2]).title() + " " + "".join([s[0].title() for s in parts[2:]])
@@ -283,6 +433,19 @@ def shorten_name(text: str) -> str:
 
 
 def days(kf: int | None = None) -> pd.DatetimeIndex | tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
+    """Load days from cache and optionally split into train/test sets.
+
+    Parameters
+    ----------
+    kf : int or None, optional
+        K-fold index for splitting. If None, returns all days. Default is None.
+
+    Returns
+    -------
+    pd.DatetimeIndex or tuple[pd.DatetimeIndex, pd.DatetimeIndex]
+        If kf is None, returns all days as DatetimeIndex.
+        Otherwise, returns tuple of (train_days, test_days).
+    """
     days = pd.read_csv(CACHE / "delays_per_stations.csv.gz", parse_dates=["time"]).set_index(
         "time", drop=True
     )
