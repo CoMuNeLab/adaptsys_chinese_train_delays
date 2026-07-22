@@ -1,4 +1,7 @@
-"""Find the number of trains between stations."""
+"""Base lib.
+
+This files contains common functions for all the main scripts.
+"""
 
 from __future__ import annotations
 
